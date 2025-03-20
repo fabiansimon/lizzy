@@ -10,7 +10,9 @@ import {
 } from 'wagmi';
 import { InjectedConnector } from 'wagmi/connectors/injected';
 import { SiweMessage } from 'siwe';
-import trpc from './utils/trpc';
+import trpc from './lib/trpc';
+import { Button } from './components/ui/button';
+import SideBar from './components/sidebar/sidebar';
 
 export default function App() {
   const [state, setState] = useState<{
@@ -119,20 +121,22 @@ export default function App() {
 
   // Render
   return (
-    <main>
+    <main className="flex flex-grow h-screen w-full bg-slate-900">
+      <SideBar />
       <div className="p-6">
         <h1 className="text-2xl text-white font-medium mb-4 border-b border-zinc-800 pb-4">
           tRPC SIWE Monorepo
         </h1>
 
         {!isConnected ? (
-          <button
-            onClick={() => connect()}
-            className="h-10 mb-4 block rounded-full px-6 text-white bg-blue-600 hover:bg-blue-700 transition-colors ease-in-out duration-200"
-          >
-            Connect Wallet
-          </button>
+          <Button>Connect Wallet</Button>
         ) : (
+          // <button
+          //   onClick={() => connect()}
+          //   className="h-10 mb-4 block rounded-full px-6 text-white bg-blue-600 hover:bg-blue-700 transition-colors ease-in-out duration-200"
+          // >
+          //   Connect Wallet
+          // </button>
           <button
             onClick={() => disconnect()}
             className="h-10 mb-4 block rounded-full px-6 text-white bg-red-600 hover:bg-red-700 transition-colors ease-in-out duration-200"

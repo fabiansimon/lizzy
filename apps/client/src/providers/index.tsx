@@ -1,6 +1,7 @@
 import WagmiProvider from './wagmi';
 import QueryProvider from './query';
 import TRPCProvider from './trpc';
+import UserProvider from './user';
 
 export default function RootProvider({
   children,
@@ -11,7 +12,9 @@ export default function RootProvider({
     <div>
       <WagmiProvider>
         <QueryProvider>
-          <TRPCProvider>{children}</TRPCProvider>
+          <TRPCProvider>
+            <UserProvider>{children}</UserProvider>
+          </TRPCProvider>
         </QueryProvider>
       </WagmiProvider>
     </div>

@@ -11,10 +11,13 @@ import {
 } from '../../components/ui/sidebar';
 import { Button } from '../ui/button';
 import { useUser } from '../../providers/user';
+import { truncateAddress } from '../../lib/utils';
+
 type SidebarItem = {
   title: string;
   url: string;
   icon: React.ElementType;
+  auth?: boolean;
 };
 
 export default function AppSidebar() {
@@ -23,20 +26,23 @@ export default function AppSidebar() {
   const items: SidebarItem[] = [
     {
       title: 'Home',
-      url: '#',
+      url: '/',
       icon: Home,
+      auth: false,
     },
     {
       title: 'Your Licenses',
-      url: '#',
+      url: '/licenses',
       icon: Key,
+      auth: true,
     },
     {
-      title: 'Shops',
-      url: '#',
+      title: 'Shop',
+      url: '/shop',
       icon: Store,
+      auth: true,
     },
-  ];
+  ].filter((item) => !item.auth || user.isSignedIn);
 
   const handleConnect = () => {
     signIn();
@@ -55,9 +61,11 @@ export default function AppSidebar() {
           </SidebarGroupLabel>
           <Button
             onClick={user.isSignedIn ? showUser : handleConnect}
-            className="w-full my-2 bg-sky-500 hover:bg-sky-600 text-slate-950"
+            className="w-full my-2 bg-sky-500 hover:bg-sky-600 text-slate-950 px-4 overflow-hidden text-ellipsis whitespace-nowrap"
           >
-            {user.isSignedIn ? user.address : 'Connect Wallet'}
+            {user.isSignedIn
+              ? truncateAddress(user.address ?? '', [8, 6])
+              : 'Connect Wallet'}
           </Button>
           <SidebarGroupContent>
             <SidebarMenu>

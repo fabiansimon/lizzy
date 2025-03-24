@@ -1,4 +1,4 @@
-import { inferAsyncReturnType, initTRPC } from '@trpc/server';
+import { inferAsyncReturnType, initTRPC, TRPCError } from '@trpc/server';
 import { createContext } from './app';
 
 type Context = inferAsyncReturnType<typeof createContext>;
@@ -8,4 +8,18 @@ const router = t.router;
 const publicProcedure = t.procedure;
 const mergeRouters = t.mergeRouters;
 
-export { Context, t, router, publicProcedure, mergeRouters };
+const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
+  if (!ctx.req.session.siwe?.address) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+  return next({ ctx });
+});
+
+export {
+  Context,
+  t,
+  router,
+  publicProcedure,
+  protectedProcedure,
+  mergeRouters,
+};

@@ -1,23 +1,29 @@
 import { httpBatchLink } from '@trpc/client';
-import trpc from '../../lib/trpc';
 import { queryClient } from '../query';
+import { createTRPCReact } from '@trpc/react-query';
+import { AppRouter } from '../../../../server/src/router';
 
-const trpcClient = trpc.createClient({
-  links: [
-    httpBatchLink({
-      url: `${import.meta.env.VITE_TRPC_SERVER_URL}`,
-      // Needed to support session cookies
-      fetch(url, options) {
-        return fetch(url, {
-          ...options,
-          credentials: 'include',
-        });
-      },
-    }),
-  ],
-});
+export const trpc = createTRPCReact<AppRouter>();
 
-const TRPCProvider = ({ children }: { children: React.ReactNode }) => {
+export default function TRPCProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const trpcClient = trpc.createClient({
+    links: [
+      httpBatchLink({
+        url: import.meta.env.VITE_TRPC_SERVER_URL,
+        fetch(url, options) {
+          return fetch(url, {
+            ...options,
+            credentials: 'include',
+          });
+        },
+      }),
+    ],
+  });
+
   return (
     <trpc.Provider
       client={trpcClient}
@@ -26,6 +32,4 @@ const TRPCProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </trpc.Provider>
   );
-};
-
-export default TRPCProvider;
+}

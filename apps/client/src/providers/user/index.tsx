@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { InjectedConnector } from 'wagmi/connectors/injected';
 import { SiweMessage } from 'siwe';
-import trpc from '../../lib/trpc';
+
 import {
   useSignMessage,
   useNetwork,
@@ -9,6 +9,7 @@ import {
   useConnect,
   useDisconnect,
 } from 'wagmi';
+import { trpc } from '../trpc';
 
 type User = {
   isLoading?: boolean;
@@ -39,31 +40,38 @@ export default function UserProvider({
   const [state, setState] = useState<User>({});
 
   const { address, isConnected } = useAccount();
-  const { connect, error: errorConnect } = useConnect({
+  const { connectAsync, error: errorConnect } = useConnect({
     connector: new InjectedConnector(),
   });
   const { disconnect, error: errorDisconnect } = useDisconnect();
   const { chain } = useNetwork();
   const { signMessageAsync } = useSignMessage();
 
-  const authNonce = trpc.authNonce.useQuery(undefined, {
+  const authNonce = trpc.auth.nonce.useQuery(undefined, {
     enabled: false,
   });
-  const authMe = trpc.authMe.useQuery(undefined, {
+  const authMe = trpc.auth.me.useQuery(undefined, {
     enabled: false,
   });
-  const authLogout = trpc.authLogout.useQuery(undefined, {
+  const authLogout = trpc.auth.logout.useQuery(undefined, {
     enabled: false,
   });
-  const authVerify = trpc.authVerify.useMutation();
+  const authVerify = trpc.auth.verify.useMutation();
 
   const signIn = async () => {
     try {
-      //   connect();
+      if (!isConnected) {
+        await connectAsync();
+      }
       const chainId = chain?.id;
       const nonce = await authNonce.refetch();
       if (!address || !chainId) return;
-      setState((x) => ({ ...x, nonce: nonce?.data, isLoading: true }));
+      setState((prev) => ({
+        ...prev,
+        nonce: nonce?.data,
+        isLoading: true,
+        address,
+      }));
 
       // Create SIWE message with pre-fetched nonce and sign with wallet
       const message = new SiweMessage({
@@ -82,8 +90,9 @@ export default function UserProvider({
         message: message.prepareMessage(),
       });
 
-      authVerify.mutate({ message, signature });
+      await authVerify.mutateAsync({ message, signature });
     } catch (error) {
+      console.log(error);
       setState((x) => ({
         ...x,
         isLoading: false,
@@ -113,7 +122,7 @@ export default function UserProvider({
         ...x,
         isSignedIn: false,
         isLoading: false,
-        error: authVerify.data?.error,
+        error: 'error' in authVerify.data ? authVerify.data.error : undefined,
       }));
     }
   }, [isConnected, authVerify?.data]);

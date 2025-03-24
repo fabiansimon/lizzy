@@ -1,9 +1,13 @@
-import { mergeRouters } from '../trpc';
-import AuthRouter from './auth';
+import { mergeRouters, router } from '../trpc';
+import { authRouter } from './auth/authRouter';
+import { licensesRouter } from './licence/licenseRouter';
 
 type AppRouter = typeof appRouter;
 
-const appRouter = mergeRouters(AuthRouter);
+export const appRouter = router({
+  auth: authRouter,
+  license: licensesRouter,
+});
 
 export default appRouter;
-export { AppRouter };
+export type { AppRouter };

@@ -44,10 +44,6 @@ export default function AppSidebar() {
     },
   ].filter((item) => !item.auth || user.isSignedIn);
 
-  const handleConnect = () => {
-    signIn();
-  };
-
   const showUser = () => {
     console.log(user);
   };
@@ -60,7 +56,7 @@ export default function AppSidebar() {
             {'Lizzy'}
           </SidebarGroupLabel>
           <Button
-            onClick={user.isSignedIn ? showUser : handleConnect}
+            onClick={user.isSignedIn ? showUser : signIn}
             className="w-full my-2 bg-sky-500 hover:bg-sky-600 text-slate-950 px-4 overflow-hidden text-ellipsis whitespace-nowrap"
           >
             {user.isSignedIn

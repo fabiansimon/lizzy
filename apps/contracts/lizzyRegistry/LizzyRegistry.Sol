@@ -1,0 +1,138 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+contract LizzyRegistry {
+    address public owner;
+    uint256 public licenseCounter = 0; 
+
+    struct LicenseMeta {
+        uint256 id;
+        address vendor;
+        string title;
+        string metaURI;
+        uint256 price;
+        uint256 issuedAt; 
+        uint256 duration; // 0 => no expiration date
+        bool revoked;
+    }
+
+    struct UserLicense {
+        uint256 licenseId;
+        uint256 issuedAt; 
+        uint256 expiresAt; // 0 => if no expiration
+        bool revoked;
+    }
+
+    mapping(uint256 => LicenseMeta) public catalog; // All available licenses
+    mapping(address => mapping(uint256 => UserLicense)) public licensesByUser; // User licenses
+
+    event LicenseUploaded(uint256 indexed id, address indexed vendor);
+    event LicensePurchased(uint256 indexed id, address indexed buyer);
+    event LicenseRevoked(address indexed user, uint256 indexed licenseId);
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not contract owner");
+        _;
+    }
+
+    function createLicense(
+        string memory title,
+        string memory metaURI,
+        uint256 price,
+        uint256 duration
+    ) external {
+        catalog[licenseCounter] = LicenseMeta({
+            id: licenseCounter,
+            vendor: msg.sender,
+            title: title,
+            metaURI: metaURI,
+            price: price,
+            duration: duration,
+            issuedAt: block.timestamp,
+            revoked: false
+        });
+
+        emit LicenseUploaded(licenseCounter, msg.sender);
+        licenseCounter++;
+    }
+
+    function buyLicense(uint256 licenseId) external payable {
+        LicenseMeta storage meta = catalog[licenseId];
+        require(meta.revoked == false, "License is revoked.");
+        require(msg.value >= meta.price, "Insufficient funds.");
+
+        UserLicense storage existing = licensesByUser[msg.sender][licenseId];
+        require(existing.issuedAt == 0, "Licenses already owned.");
+
+        uint256 issuedAt = block.timestamp;
+        uint256 expiresAt = meta.duration > 0 ? issuedAt + meta.duration : 0;
+
+        licensesByUser[msg.sender][licenseId] = UserLicense({
+            licenseId: licenseId,
+            issuedAt: issuedAt,
+            expiresAt: expiresAt,
+            revoked: false
+        });
+
+        payable(meta.vendor).transfer(meta.price);
+
+        uint256 refund = msg.value - meta.price;
+        if (refund > 0) {
+            payable(msg.sender).transfer(refund);
+        }
+
+        emit LicensePurchased(licenseId, msg.sender);
+    }
+
+    function hasValidLicense(address user, uint256 licenseId) external view returns (bool) {
+        LicenseMeta storage licenseMeta = catalog[licenseId];
+        require(licenseMeta.issuedAt != 0, "License not found.");
+
+        UserLicense storage userLicense = licensesByUser[user][licenseId];
+
+        if (userLicense.issuedAt == 0) return false; // No license issued
+        if (userLicense.revoked == true) return false; // License revoked
+        if (userLicense.expiresAt != 0 && block.timestamp > userLicense.expiresAt) return false; // License expired
+
+        return true;
+    }
+
+    function getUserLicenses(address user) external view returns (UserLicense[] memory) {
+        uint256 count = 0;
+    
+        for (uint256 i = 0; i < licenseCounter; i++) {
+            if (licensesByUser[user][i].issuedAt != 0) {
+                count++;
+            }
+        }
+        
+        UserLicense[] memory userLicenses = new UserLicense[](count);
+        uint256 index = 0;
+        
+        for (uint256 i = 0; i < licenseCounter; i++) {
+            if (licensesByUser[user][i].issuedAt != 0) {
+                userLicenses[index] = licensesByUser[user][i];
+                index++;
+            }
+        }
+        
+        return userLicenses;
+    }
+
+    function revokeLicense(address user, uint256 licenseId) external onlyOwner {
+        UserLicense storage license = licensesByUser[user][licenseId];
+        require(license.issuedAt != 0, "License not found.");
+        require(!license.revoked, "Already revoked.");
+        license.revoked = true;
+
+        emit LicenseRevoked(user, licenseId);
+    }
+}
+
+/*
+Although .transfer() mitigates reentrancy, you might still consider adding a reentrancy guard (e.g., from OpenZeppelin’s ReentrancyGuard) in functions that handle transfers for future-proofing.
+*/

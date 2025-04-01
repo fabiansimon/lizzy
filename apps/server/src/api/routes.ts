@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import healthRoutes from './health';
-import licenseCheckRoutes from './licenseCheck';
+import healthRoutes from './routes/health';
+import licenseCheckRoutes from './routes/licenseCheck';
 
 const router = Router();
 

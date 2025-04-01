@@ -1,8 +1,5 @@
-'use client';
-
 import type React from 'react';
-
-import { Home, Store, Key, LogOut, Upload, Plus } from 'lucide-react';
+import { Store, Key, LogOut, Plus } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -22,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../../components/ui/dropdown-menu';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { Badge } from '../ui/badge';
 
@@ -36,6 +33,7 @@ type SidebarItem = {
 export default function AppSidebar() {
   const { user, signIn, signOut } = useUser();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const customerItems: SidebarItem[] = [
     {
@@ -69,7 +67,6 @@ export default function AppSidebar() {
     user.role === 'vendor' ? vendorItems : customerItems
   ).filter((item) => !item.auth || user.isSignedIn);
 
-  // Function to check if a menu item is active
   const isActive = (url: string) => {
     if (url === '/' && location.pathname === '/') return true;
     return url !== '/' && location.pathname.startsWith(url);
@@ -147,7 +144,10 @@ export default function AppSidebar() {
           {/* Logout button at the bottom */}
           {user.isSignedIn && (
             <Button
-              onClick={signOut}
+              onClick={() => {
+                signOut();
+                navigate('/');
+              }}
               // variant="ghost"
               className="mt-auto mb-4 text-white/70 hover:text-white hover:bg-slate-800"
             >

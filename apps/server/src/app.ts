@@ -4,6 +4,11 @@ import * as trpcExpress from '@trpc/server/adapters/express';
 import { ironSession } from 'iron-session/express';
 import appRouter from './router';
 import apiRoutes from './api/routes';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
+import { swaggerOptions } from './swaggerOptions';
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 const createContext = ({
   req,
@@ -38,6 +43,15 @@ app.use(
  * route for external API request
  */
 app.use('/api/v1', apiRoutes);
+
+/**
+ * route for swagger UI
+ */
+app.use(
+  '/api-docs',
+  swaggerUi.serve as unknown as express.RequestHandler[],
+  swaggerUi.setup(swaggerSpec) as unknown as express.RequestHandler
+);
 
 /**
  * Support for a dedicated tRPC route

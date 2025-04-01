@@ -1,5 +1,5 @@
 import { trpc } from '../providers/trpc';
-import { useUser } from '../providers/user';
+import user, { useUser } from '../providers/user';
 import {
   Card,
   CardContent,
@@ -17,14 +17,20 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import { Skeleton } from '../components/ui/skeleton';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import LicenseCard from '../components/ui/LicenseCard';
 import { Button } from '../components/ui/button';
+import { toast } from '../components/ui/use-toast';
+import { ethers } from 'ethers';
+import { lizzyABI } from '../../../contracts/lizzyRegistry/lizzyABI';
 
 export default function ShopPage() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('newest');
+  const [loadingID, setLoadingID] = useState<string | null>(null);
 
+  const navigate = useNavigate();
+  const { user } = useUser();
   const { data, isLoading } = trpc.license.fetchAll.useQuery();
   const {
     user: { role },
@@ -54,6 +60,62 @@ export default function ShopPage() {
         return 0;
     }
   });
+
+  const handlePurchase = async (licenseId: string, price: string) => {
+    if (!user.isSignedIn || user.role !== 'customer') {
+      toast({
+        title: 'Error',
+        description: 'You must be signed in to purchase a license.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!window.ethereum) {
+      toast({
+        title: 'Wallet not found',
+        description: 'Please install MetaMask or another Web3 wallet.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setLoadingID(licenseId);
+
+      const priceInWei = ethers.utils.parseEther(price); // assuming price is in ETH
+      const provider = new ethers.providers.Web3Provider(
+        window.ethereum as any
+      );
+      const signer = provider.getSigner();
+
+      const contract = new ethers.Contract(
+        import.meta.env.VITE_LIZZY_REGISTRY_CONTRACT_ADDRESS,
+        lizzyABI,
+        signer
+      );
+
+      const tx = await contract.buyLicense(licenseId, {
+        value: priceInWei, // send ETH with the transaction
+      });
+      await tx.wait();
+
+      toast({
+        title: 'Success',
+        description: 'License purchased successfully!',
+      });
+      navigate(`/user-licenses`);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Error',
+        description: 'Failed to purchase license. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingID(null);
+    }
+  };
 
   if (role === 'vendor') {
     return <Navigate to="/vendor-licenses" />;
@@ -147,7 +209,10 @@ export default function ShopPage() {
             >
               <Button
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                disabled={license.revoked}
+                onClick={() =>
+                  handlePurchase(license.id.toString(), license.price)
+                }
+                disabled={loadingID === license.id.toString()}
               >
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Purchase License

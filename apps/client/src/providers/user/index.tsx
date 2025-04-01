@@ -10,7 +10,7 @@ import {
   useDisconnect,
 } from 'wagmi';
 import { trpc } from '../trpc';
-
+import { useNavigate } from 'react-router-dom';
 type User = {
   isLoading?: boolean;
   isSignedIn?: boolean;

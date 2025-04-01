@@ -63,3 +63,7 @@ export async function fetchVendorLicenses(vendorAddress: string) {
     revoked: license.revoked,
   }));
 }
+
+export async function checkValidLicense(wallet: string, licenseId: number) {
+  return await contract.hasValidLicense(wallet, licenseId);
+}

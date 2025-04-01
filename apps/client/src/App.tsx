@@ -10,9 +10,9 @@ function Layout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <main className="flex flex-grow h-screen w-full bg-slate-900 items-center justify-center relative">
+      <main className="flex flex-grow h-screen w-full bg-slate-900 items-center justify-center">
         <SidebarTrigger style={{ position: 'absolute', top: 0, left: 0 }} />
-        <div className="p-6">
+        <div className="p-6 min-w-full">
           <Outlet />
         </div>
       </main>

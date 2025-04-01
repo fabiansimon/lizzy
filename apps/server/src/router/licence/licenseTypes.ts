@@ -7,4 +7,16 @@ export const CreateLicenseInput = z.object({
   duration: z.number(),
 });
 
+export const License = z.object({
+  id: z.number(),
+  title: z.string(),
+  vendor: z.string(),
+  metaURI: z.string(),
+  price: z.string(), // formatted ETH as string
+  issuedAt: z.string(), // ISO date string
+  duration: z.number(),
+  revoked: z.boolean(),
+});
+
 export type CreateLicenseInput = z.infer<typeof CreateLicenseInput>;
+export type License = z.infer<typeof License>;

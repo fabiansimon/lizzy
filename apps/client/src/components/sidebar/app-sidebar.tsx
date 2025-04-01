@@ -76,8 +76,15 @@ export default function AppSidebar() {
     <Sidebar className="border-slate-800">
       <SidebarContent className="bg-slate-950">
         <SidebarGroup className="gap-2 h-full flex flex-col">
-          <SidebarGroupLabel className="text-white text-2xl font-bold">
-            {'Lizzy'}
+          <SidebarGroupLabel className="text-white text-2xl my-2 -ml-2 mb-4">
+            <div className="flex items-center gap-2">
+              <img
+                src="/lizzy_logo.png"
+                alt="Lizzy"
+                className="w-12 h-12"
+              />
+              <span className="-ml-[18px] mt-2">{'izzy'}</span>
+            </div>
           </SidebarGroupLabel>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

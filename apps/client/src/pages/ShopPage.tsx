@@ -36,7 +36,7 @@ export default function ShopPage() {
   const [loadingID, setLoadingID] = useState<string | null>(null);
 
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, signIn } = useUser();
   const { data, isLoading } = trpc.license.fetchAll.useQuery();
   const {
     user: { role },
@@ -68,7 +68,12 @@ export default function ShopPage() {
   });
 
   const handlePurchase = async (licenseId: string, price: string) => {
-    if (!user.isSignedIn || user.role !== 'customer') {
+    if (!user.isSignedIn) {
+      signIn('customer');
+      return;
+    }
+
+    if (user.role !== 'customer') {
       toast({
         title: 'Error',
         description: 'You must be signed in to purchase a license.',
@@ -123,10 +128,6 @@ export default function ShopPage() {
       setLoadingID(null);
     }
   };
-
-  if (role === 'vendor') {
-    return <Navigate to="/vendor-licenses" />;
-  }
 
   return (
     <div className="mx-auto py-8 px-4 flex-col w-full flex flex-grow min-h-screen max-w-full">

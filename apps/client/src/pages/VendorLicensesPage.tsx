@@ -19,11 +19,14 @@ import { Skeleton } from '../components/ui/skeleton';
 import LicenseCard from '../components/ui/LicenseCard';
 import { Button } from '../components/ui/button';
 import { ExternalLink } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useUser } from '../providers/user';
+
 export default function VendorLicensesPage() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('newest');
 
+  const { user } = useUser();
   const navigate = useNavigate();
 
   const { data, isLoading } = trpc.license.fetchVendorLicenses.useQuery();
@@ -52,6 +55,10 @@ export default function VendorLicensesPage() {
         return 0;
     }
   });
+
+  if (!user.isSignedIn || user.role !== 'vendor') {
+    return <Navigate to="/shop" />;
+  }
 
   return (
     <div className="mx-auto py-8 px-4 flex-col w-full flex flex-grow min-h-screen max-w-full">

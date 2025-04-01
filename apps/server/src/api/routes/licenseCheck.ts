@@ -5,7 +5,7 @@ const router = Router();
 
 /**
  * @swagger
- * /validity:
+ * /license/validity:
  *   get:
  *     summary: Check license validity for a given wallet and optional device ID.
  *     tags:
@@ -80,7 +80,6 @@ const router = Router();
  */
 router.get('/validity', async (req, res) => {
   const { wallet, deviceId, licenseId } = req.query;
-  console.log({ wallet, deviceId, licenseId });
 
   if (!wallet || !licenseId) {
     return res.status(400).json({

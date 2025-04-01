@@ -12,10 +12,13 @@ import {
 } from '../components/ui/select';
 import { Skeleton } from '../components/ui/skeleton';
 import LicenseTile from '../components/ui/LicenseTile';
-
+import { Navigate } from 'react-router-dom';
+import { useUser } from '../providers/user';
 export default function UserLicensesPage() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('newest');
+
+  const { user } = useUser();
 
   const { data: licenses, isLoading } =
     trpc.license.fetchUserLicenses.useQuery();
@@ -44,6 +47,10 @@ export default function UserLicensesPage() {
         return 0;
     }
   });
+
+  if (!user.isSignedIn || user.role !== 'customer') {
+    return <Navigate to="/shop" />;
+  }
 
   return (
     <div className="mx-auto py-8 px-4 flex-col w-full flex flex-grow min-h-screen max-w-full">

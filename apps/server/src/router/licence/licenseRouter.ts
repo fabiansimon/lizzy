@@ -1,10 +1,10 @@
 import { TRPCError } from '@trpc/server';
-import { protectedProcedure, router } from '../../trpc';
+import { protectedProcedure, publicProcedure, router } from '../../trpc';
 import * as RegistryService from './licenseService';
 import { License } from './licenseTypes';
 import { z } from 'zod';
 
-const fetchAll = protectedProcedure.output(z.array(License)).query(async () => {
+const fetchAll = publicProcedure.output(z.array(License)).query(async () => {
   try {
     const licenses = await RegistryService.fetchAllLicenses();
     return licenses;

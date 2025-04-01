@@ -20,16 +20,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../components/ui/tooltip';
-import {
-  AlertCircle,
-  HelpCircle,
-  FileText,
-  Link,
-  DollarSign,
-  Clock,
-} from 'lucide-react';
+import { HelpCircle, FileText, Link, DollarSign, Clock } from 'lucide-react';
 import { Label } from '../components/ui/label';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { parseContractError } from '../lib/utils';
 
 const INIT_FORM = {
@@ -133,27 +126,11 @@ export default function CreateLicensePage() {
   };
 
   if (!user.isSignedIn || user.role !== 'vendor') {
-    return (
-      <div className="flex items-center justify-center min-h-[70vh]">
-        <Card className="w-full max-w-md bg-slate-900 border-slate-800 text-white">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Access Denied</CardTitle>
-            <CardDescription className="text-slate-400">
-              You need vendor privileges to create licenses
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <div className="rounded-full bg-destructive/10 p-4">
-              <AlertCircle className="h-8 w-8 text-blue-400" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <Navigate to="/shop" />;
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto py-8 px-4 -mt-20">
       <Card className="max-w-2xl mx-auto bg-slate-950/20 border-slate-800 text-white">
         <CardHeader>
           <CardTitle className="text-2xl">Create New License</CardTitle>

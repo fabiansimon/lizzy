@@ -1,11 +1,6 @@
 import { trpc } from '../providers/trpc';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from '../components/ui/card';
-import { AlertCircle, Search, Filter } from 'lucide-react';
+import { AlertCircle, Search, Filter, ExternalLink } from 'lucide-react';
+import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useState } from 'react';
 import {
@@ -16,27 +11,23 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import { Skeleton } from '../components/ui/skeleton';
-import LicenseCard from '../components/ui/LicenseCard';
-import { Button } from '../components/ui/button';
-import { ExternalLink } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-export default function VendorLicensesPage() {
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [sortBy, setSortBy] = useState<string>('newest');
+import LicenseTile from '../components/ui/LicenseTile';
 
-  const navigate = useNavigate();
+export default function ManageLicensePage() {
+  const { data: licenses, isLoading } =
+    trpc.license.fetchUserLicenses.useQuery();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
 
-  const { data, isLoading } = trpc.license.fetchVendorLicenses.useQuery();
+  const formattedLicenses = licenses ?? [];
 
-  const licenses = data ?? [];
-
-  const filteredLicenses = licenses.filter(
+  const filteredLicenses = formattedLicenses.filter(
     (license) =>
       license.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       license.vendor.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const sortedLicenses = filteredLicenses.sort((a, b) => {
+  const sortedLicenses = [...filteredLicenses].sort((a, b) => {
     switch (sortBy) {
       case 'newest':
         return new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime();
@@ -56,17 +47,17 @@ export default function VendorLicensesPage() {
   return (
     <div className="mx-auto py-8 px-4 flex-col w-full flex flex-grow min-h-screen max-w-full">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">
-          {'Your Licenses'}
-        </h1>
-        <p className="text-slate-400">{'View your licenses'}</p>
+        <h1 className="text-3xl font-bold text-white mb-2">{'My Licenses'}</h1>
+        <p className="text-slate-400">
+          {'View and manage your purchased licenses'}
+        </p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
           <Input
-            placeholder="Search licenses..."
+            placeholder="Search your licenses..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
@@ -95,27 +86,29 @@ export default function VendorLicensesPage() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, index) => (
-            <Card
+        <div className="space-y-4">
+          {[...Array(5)].map((_, index) => (
+            <div
               key={index}
-              className="bg-slate-900 border-slate-800 text-white"
+              className="bg-slate-900 border border-slate-800 rounded-lg p-4"
             >
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4 bg-slate-800" />
-                <Skeleton className="h-4 w-1/2 bg-slate-800 mt-2" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <Skeleton className="h-4 w-full bg-slate-800" />
-                  <Skeleton className="h-4 w-full bg-slate-800" />
-                  <Skeleton className="h-4 w-3/4 bg-slate-800" />
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <Skeleton className="h-6 w-3/4 bg-slate-800" />
+                  <Skeleton className="h-4 w-1/2 bg-slate-800 mt-2" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+                    <Skeleton className="h-4 w-full bg-slate-800" />
+                    <Skeleton className="h-4 w-full bg-slate-800" />
+                    <Skeleton className="h-4 w-full bg-slate-800" />
+                    <Skeleton className="h-4 w-full bg-slate-800" />
+                  </div>
                 </div>
-              </CardContent>
-              <CardFooter>
-                <Skeleton className="h-10 w-full bg-slate-800" />
-              </CardFooter>
-            </Card>
+                <div className="flex flex-row md:flex-col gap-2 justify-end">
+                  <Skeleton className="h-10 w-28 bg-slate-800" />
+                  <Skeleton className="h-10 w-28 bg-slate-800" />
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       ) : sortedLicenses.length === 0 ? (
@@ -129,25 +122,31 @@ export default function VendorLicensesPage() {
           <p className="text-slate-400 max-w-md">
             {searchTerm
               ? `No licenses match your search for "${searchTerm}"`
-              : 'There are no licenses available at the moment. Please check back later.'}
+              : "You haven't purchased any licenses yet. Visit the shop to browse available licenses."}
           </p>
+          <Button
+            className="mt-6 bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => (window.location.href = '/shop')}
+          >
+            Browse Shop
+          </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-4">
           {sortedLicenses.map((license) => (
-            <LicenseCard
-              key={license.id}
+            <LicenseTile
               license={license}
-            >
-              <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white w-full"
-                disabled={license.revoked}
-                onClick={() => navigate(`/manage-license/${license.id}`)}
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Manage
-              </Button>
-            </LicenseCard>
+              key={license.id}
+              trailing={
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={license.revoked}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Open
+                </Button>
+              }
+            />
           ))}
         </div>
       )}

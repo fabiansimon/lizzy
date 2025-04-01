@@ -11,7 +11,7 @@ export const License = z.object({
   id: z.number(),
   title: z.string(),
   vendor: z.string(),
-  metaURI: z.string(),
+  metaURI: z.string().optional(),
   price: z.string(), // formatted ETH as string
   issuedAt: z.string(), // ISO date string
   duration: z.number(),

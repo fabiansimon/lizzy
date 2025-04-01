@@ -23,3 +23,10 @@ export function formatDate(dateString: string) {
     return 'Invalid date';
   }
 }
+
+export function truncateURL(url: string) {
+  if (url.length > 30) {
+    return url.slice(0, 30) + '...' + url.slice(-10);
+  }
+  return url;
+}

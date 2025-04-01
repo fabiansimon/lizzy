@@ -1,30 +1,12 @@
-'use client';
-
 import { trpc } from '../providers/trpc';
 import { useUser } from '../providers/user';
-import { ethers } from 'ethers';
-import { formatDate, formatDuration, truncateAddress } from '../lib/utils';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
-  CardTitle,
+  CardFooter,
 } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import {
-  FileText,
-  User,
-  Clock,
-  DollarSign,
-  Calendar,
-  ShoppingCart,
-  AlertCircle,
-  Search,
-  Filter,
-} from 'lucide-react';
-import { Badge } from '../components/ui/badge';
+import { AlertCircle, Search, Filter, ShoppingCart } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { useState } from 'react';
 import {
@@ -35,21 +17,28 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import { Skeleton } from '../components/ui/skeleton';
+import { Navigate } from 'react-router-dom';
+import LicenseCard from '../components/ui/LicenseCard';
+import { Button } from '../components/ui/button';
 
 export default function ShopPage() {
-  const { data: licenses, isLoading } = trpc.license.fetchAll.useQuery();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('newest');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [sortBy, setSortBy] = useState<string>('newest');
 
-  const formattedLicenses = licenses ?? [];
+  const { data, isLoading } = trpc.license.fetchAll.useQuery();
+  const {
+    user: { role },
+  } = useUser();
 
-  const filteredLicenses = formattedLicenses.filter(
+  const licenses = data ?? [];
+
+  const filteredLicenses = licenses.filter(
     (license) =>
       license.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       license.vendor.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const sortedLicenses = [...filteredLicenses].sort((a, b) => {
+  const sortedLicenses = filteredLicenses.sort((a, b) => {
     switch (sortBy) {
       case 'newest':
         return new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime();
@@ -65,6 +54,10 @@ export default function ShopPage() {
         return 0;
     }
   });
+
+  if (role === 'vendor') {
+    return <Navigate to="/vendor-licenses" />;
+  }
 
   return (
     <div className="mx-auto py-8 px-4 flex-col w-full flex flex-grow min-h-screen max-w-full">
@@ -148,65 +141,18 @@ export default function ShopPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedLicenses.map((license) => (
-            <Card
+            <LicenseCard
+              license={license}
               key={license.id}
-              className={`bg-slate-900 border-slate-800 text-white ${
-                license.revoked ? 'opacity-60' : ''
-              }`}
             >
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl">{license.title}</CardTitle>
-                  {license.revoked && (
-                    <Badge
-                      variant="destructive"
-                      className="bg-red-900 hover:bg-red-800"
-                    >
-                      Revoked
-                    </Badge>
-                  )}
-                </div>
-                <CardDescription className="text-slate-400 flex items-center">
-                  <User className="h-3 w-3 mr-1" />
-                  {truncateAddress(license.vendor)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center text-sm text-slate-300">
-                    <DollarSign className="h-4 w-4 mr-2 text-blue-400" />
-                    <span className="font-semibold">{license.price} ETH</span>
-                  </div>
-                  <div className="flex items-center text-sm text-slate-300">
-                    <Clock className="h-4 w-4 mr-2 text-blue-400" />
-                    <span>Valid for {formatDuration(license.duration)}</span>
-                  </div>
-                  <div className="flex items-center text-sm text-slate-300">
-                    <Calendar className="h-4 w-4 mr-2 text-blue-400" />
-                    <span>Created {formatDate(license.issuedAt)}</span>
-                  </div>
-                  <div className="flex items-center text-sm text-slate-300">
-                    <FileText className="h-4 w-4 mr-2 text-blue-400" />
-                    <span
-                      className="truncate"
-                      title={license.metaURI}
-                    >
-                      {license.metaURI.substring(0, 30)}
-                      {license.metaURI.length > 30 ? '...' : ''}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  disabled={license.revoked}
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Purchase License
-                </Button>
-              </CardFooter>
-            </Card>
+              <Button
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={license.revoked}
+              >
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Purchase License
+              </Button>
+            </LicenseCard>
           ))}
         </div>
       )}

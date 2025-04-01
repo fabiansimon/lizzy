@@ -39,12 +39,6 @@ export default function AppSidebar() {
 
   const customerItems: SidebarItem[] = [
     {
-      title: 'Home',
-      url: '/',
-      icon: Home,
-      auth: false,
-    },
-    {
       title: 'Shop',
       url: '/shop',
       icon: Store,
@@ -59,11 +53,6 @@ export default function AppSidebar() {
   ];
 
   const vendorItems: SidebarItem[] = [
-    {
-      title: 'Home',
-      url: '/',
-      icon: Home,
-    },
     {
       title: 'Your Licenses',
       url: '/vendor-licenses',

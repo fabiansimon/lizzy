@@ -46,3 +46,20 @@ export async function fetchUserLicenses(userAddress: string) {
 
   return licenses;
 }
+
+export async function fetchVendorLicenses(vendorAddress: string) {
+  const catalog = await contract.getCatalog();
+  const licenses = catalog.filter(
+    (license: any) => license.vendor === vendorAddress
+  );
+  return licenses.map((license: any) => ({
+    id: Number(license.id),
+    title: license.title,
+    vendor: license.vendor,
+    metaURI: license.metaURI,
+    price: ethers.utils.formatEther(license.price),
+    issuedAt: new Date(Number(license.issuedAt) * 1000).toISOString(),
+    duration: Number(license.duration),
+    revoked: license.revoked,
+  }));
+}

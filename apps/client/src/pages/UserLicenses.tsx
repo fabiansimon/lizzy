@@ -1,21 +1,6 @@
-'use client';
-
 import { trpc } from '../providers/trpc';
-import { useUser } from '../providers/user';
-import { cn, formatDate, formatDuration, truncateAddress } from '../lib/utils';
+import { AlertCircle, Search, Filter, ExternalLink } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import {
-  FileText,
-  User,
-  Clock,
-  DollarSign,
-  Calendar,
-  AlertCircle,
-  Search,
-  Filter,
-  Download,
-} from 'lucide-react';
-import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { useState } from 'react';
 import {
@@ -26,13 +11,14 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import { Skeleton } from '../components/ui/skeleton';
-import { Separator } from '../components/ui/separator';
+import LicenseTile from '../components/ui/LicenseTile';
 
 export default function UserLicensesPage() {
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [sortBy, setSortBy] = useState<string>('newest');
+
   const { data: licenses, isLoading } =
     trpc.license.fetchUserLicenses.useQuery();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('newest');
 
   const formattedLicenses = licenses ?? [];
 
@@ -149,82 +135,19 @@ export default function UserLicensesPage() {
       ) : (
         <div className="space-y-4">
           {sortedLicenses.map((license) => (
-            <div
+            <LicenseTile
+              license={license}
               key={license.id}
-              className={cn(
-                'bg-slate-900 border border-slate-800 rounded-lg p-4 relative',
-                license.revoked && 'opacity-60'
-              )}
-            >
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="absolute -top-2">
-                    {license.revoked ? (
-                      <Badge
-                        variant="destructive"
-                        className="bg-red-900 hover:bg-red-800 px-3 py-1 text-sm font-medium"
-                      >
-                        <AlertCircle className="h-3.5 w-3.5 mr-1" />
-                        Revoked
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-green-800 hover:bg-green-700 px-3 py-1 text-sm font-medium">
-                        <Clock className="h-3.5 w-3.5 mr-1" />
-                        Active
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-start justify-between mt-4">
-                    <div>
-                      <h3 className="text-xl font-semibold text-white">
-                        {license.title}
-                      </h3>
-                      <div className="flex items-center text-slate-400 mt-1">
-                        <User className="h-3 w-3 mr-1" />
-                        <span>{truncateAddress(license.vendor)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator className="my-4 bg-slate-800" />
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="flex items-center text-sm text-slate-300">
-                      <DollarSign className="h-4 w-4 mr-2 text-blue-400" />
-                      <span className="font-semibold">{license.price} ETH</span>
-                    </div>
-                    <div className="flex items-center text-sm text-slate-300">
-                      <Clock className="h-4 w-4 mr-2 text-blue-400" />
-                      <span>Valid for {formatDuration(license.duration)}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-slate-300">
-                      <Calendar className="h-4 w-4 mr-2 text-blue-400" />
-                      <span>Purchased {formatDate(license.issuedAt)}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-slate-300">
-                      <FileText className="h-4 w-4 mr-2 text-blue-400" />
-                      <span
-                        className="truncate"
-                        title={license.metaURI}
-                      >
-                        {license.metaURI.substring(0, 30)}
-                        {license.metaURI.length > 30 ? '...' : ''}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end">
-                  <Button
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                    disabled={license.revoked}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download
-                  </Button>
-                </div>
-              </div>
-            </div>
+              trailing={
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={license.revoked}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Open
+                </Button>
+              }
+            />
           ))}
         </div>
       )}

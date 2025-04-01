@@ -1,8 +1,5 @@
-'use client';
-
 import type React from 'react';
-
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useUser } from '../providers/user';
 import { useToast } from '../components/ui/use-toast';
 import { ethers } from 'ethers';
@@ -47,6 +44,10 @@ export default function CreateLicensePage() {
   const { user } = useUser();
   const { toast } = useToast();
 
+  const validateForm = useMemo(() => {
+    return formData.title.trim() && formData.price.trim();
+  }, [formData]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user.isSignedIn || user.role !== 'vendor') {
@@ -58,27 +59,39 @@ export default function CreateLicensePage() {
       return;
     }
 
+    if (!window.ethereum) {
+      toast({
+        title: 'Wallet not found',
+        description: 'Please install MetaMask or another Web3 wallet.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
+      const { title, metaURI, price, duration } = formData;
       setIsLoading(true);
       // Convert price to Wei (assuming price is in ETH)
-      const priceInWei = ethers.utils.parseEther(formData.price);
+      const priceInWei = ethers.utils.parseEther(price);
       // Convert duration to seconds (assuming duration is in days)
-      const durationInSeconds =
-        Number.parseInt(formData.duration) * 24 * 60 * 60;
-
+      const durationInSeconds = duration
+        ? Number.parseInt(duration) * 24 * 60 * 60
+        : 0;
       // Create contract instance
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const provider = new ethers.providers.Web3Provider(
+        window.ethereum as any
+      );
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
-        process.env.NEXT_PUBLIC_LIZZY_REGISTRY_CONTRACT_ADDRESS || '',
+        import.meta.env.VITE_LIZZY_REGISTRY_CONTRACT_ADDRESS,
         lizzyABI,
         signer
       );
 
       // Create license
       const tx = await contract.createLicense(
-        formData.title,
-        formData.metaURI,
+        formData.title.trim(),
+        formData.metaURI.trim(),
         priceInWei,
         durationInSeconds
       );
@@ -89,13 +102,7 @@ export default function CreateLicensePage() {
         description: 'License created successfully!',
       });
 
-      // Reset form
-      setFormData({
-        title: '',
-        metaURI: '',
-        price: '',
-        duration: '',
-      });
+      setFormData(INIT_FORM);
     } catch (error) {
       console.error(error);
       toast({
@@ -142,7 +149,7 @@ export default function CreateLicensePage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <Card className="max-w-2xl mx-auto bg-slate-950/30 border-slate-800 text-white">
+      <Card className="max-w-2xl mx-auto bg-slate-950/20 border-slate-800 text-white">
         <CardHeader>
           <CardTitle className="text-2xl">Create New License</CardTitle>
           <CardDescription className="text-slate-400">
@@ -283,7 +290,7 @@ export default function CreateLicensePage() {
           <Button
             onClick={handleSubmit}
             className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
-            disabled={isLoading}
+            disabled={isLoading || !validateForm}
           >
             {isLoading ? 'Creating...' : 'Create License'}
           </Button>

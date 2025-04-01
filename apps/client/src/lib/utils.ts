@@ -30,3 +30,18 @@ export function truncateURL(url: string) {
   }
   return url;
 }
+
+export function parseContractError(error: any) {
+  let message = 'Failed to purchase license. Please try again.';
+
+  if (error?.error?.message) {
+    message = error.error.message;
+  } else if (error?.data?.message) {
+    message = error.data.message;
+  } else if (error?.message) {
+    message = error.message;
+  }
+
+  message = message.replace(/^execution reverted: /, '');
+  return message;
+}

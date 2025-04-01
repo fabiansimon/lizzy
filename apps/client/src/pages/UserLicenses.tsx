@@ -133,7 +133,7 @@ export default function UserLicensesPage() {
           </Button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {sortedLicenses.map((license) => (
             <LicenseTile
               license={license}

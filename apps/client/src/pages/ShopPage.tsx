@@ -6,7 +6,13 @@ import {
   CardHeader,
   CardFooter,
 } from '../components/ui/card';
-import { AlertCircle, Search, Filter, ShoppingCart } from 'lucide-react';
+import {
+  AlertCircle,
+  Search,
+  Filter,
+  ShoppingCart,
+  Loader2,
+} from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { useState } from 'react';
 import {
@@ -23,7 +29,7 @@ import { Button } from '../components/ui/button';
 import { toast } from '../components/ui/use-toast';
 import { ethers } from 'ethers';
 import { lizzyABI } from '../../../contracts/lizzyRegistry/lizzyABI';
-
+import { parseContractError } from '../lib/utils';
 export default function ShopPage() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('newest');
@@ -107,9 +113,10 @@ export default function ShopPage() {
       navigate(`/user-licenses`);
     } catch (error) {
       console.error(error);
+      const errorMessage = parseContractError(error);
       toast({
         title: 'Error',
-        description: 'Failed to purchase license. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -207,16 +214,33 @@ export default function ShopPage() {
               license={license}
               key={license.id}
             >
-              <Button
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={() =>
-                  handlePurchase(license.id.toString(), license.price)
-                }
-                disabled={loadingID === license.id.toString()}
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Purchase License
-              </Button>
+              {!license.revoked && (
+                <Button
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() =>
+                    handlePurchase(license.id.toString(), license.price)
+                  }
+                  disabled={loadingID === license.id.toString()}
+                >
+                  {loadingID === license.id.toString() ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Purchasing...
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      Purchase License
+                    </>
+                  )}
+                </Button>
+              )}
+              {license.revoked && (
+                <Button className="w-full bg-red-700/15 hover:bg-red-700/15 cursor-not-allowed text-red-500">
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  Revoked
+                </Button>
+              )}
             </LicenseCard>
           ))}
         </div>

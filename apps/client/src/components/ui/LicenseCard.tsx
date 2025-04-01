@@ -27,7 +27,7 @@ export default function LicenseCard({ license, children }: LicenseCardProps) {
   return (
     <Card
       key={license.id}
-      className={`bg-slate-900 border-slate-800 text-white ${
+      className={`bg-slate-900 border-slate-800 text-white  ${
         license.revoked ? 'opacity-60' : ''
       }`}
     >

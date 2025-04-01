@@ -29,6 +29,8 @@ import {
   Clock,
 } from 'lucide-react';
 import { Label } from '../components/ui/label';
+import { useNavigate } from 'react-router-dom';
+import { parseContractError } from '../lib/utils';
 
 const INIT_FORM = {
   title: '',
@@ -41,6 +43,7 @@ export default function CreateLicensePage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [formData, setFormData] = useState<typeof INIT_FORM>(INIT_FORM);
 
+  const navigate = useNavigate();
   const { user } = useUser();
   const { toast } = useToast();
 
@@ -102,12 +105,14 @@ export default function CreateLicensePage() {
         description: 'License created successfully!',
       });
 
+      navigate('/vendor-licenses');
       setFormData(INIT_FORM);
     } catch (error) {
+      const errorMessage = parseContractError(error);
       console.error(error);
       toast({
         title: 'Error',
-        description: 'Failed to create license. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

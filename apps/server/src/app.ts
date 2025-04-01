@@ -3,6 +3,7 @@ import cors from 'cors';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { ironSession } from 'iron-session/express';
 import appRouter from './router';
+import apiRoutes from './api/routes';
 
 const createContext = ({
   req,
@@ -36,9 +37,7 @@ app.use(
 /**
  * route for external API request
  */
-app.get('/api/v1/', (_req, res) => {
-  return res.json({ ok: true });
-});
+app.use('/api/v1', apiRoutes);
 
 /**
  * Support for a dedicated tRPC route

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useUser } from '../providers/user';
 import { useToast } from '../components/ui/use-toast';
 import { ethers } from 'ethers';
-import { lizzyABI } from '../../../contracts/lizzyRegistry/lizzyABI';
+import { lizzyABI } from '../../../contracts/lizzyRegistry/lizzyABI.js';
 import {
   Card,
   CardContent,

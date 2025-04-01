@@ -1,6 +1,6 @@
 import { env } from '../../env';
 import { ethers } from 'ethers';
-import { lizzyABI } from '../../../../contracts/lizzyRegistry/lizzyABI';
+import { lizzyABI } from '../../../../contracts/lizzyRegistry/lizzyABI.js';
 import { CreateLicenseInput } from './licenseTypes';
 
 const provider = new ethers.providers.JsonRpcProvider(

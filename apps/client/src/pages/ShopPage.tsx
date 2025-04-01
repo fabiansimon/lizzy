@@ -72,9 +72,7 @@ export default function ShopPage() {
         <h1 className="text-3xl font-bold text-white mb-2">
           {'Available Licenses'}
         </h1>
-        <p className="text-slate-400">
-          {'Browse and purchase licenses for your projects'}
-        </p>
+        <p className="text-slate-400">{'Browse and purchase licenses'}</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 mb-8">

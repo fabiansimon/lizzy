@@ -23,3 +23,26 @@ export async function fetchAllLicenses() {
     revoked: license.revoked,
   }));
 }
+
+export async function fetchUserLicenses(userAddress: string) {
+  const rawLicenses = await contract.getUserLicenses(userAddress);
+
+  const licenses = await Promise.all(
+    rawLicenses.map(async (userLicense: any) => {
+      const meta = await contract.catalog(userLicense.licenseId);
+
+      return {
+        id: Number(meta.id),
+        title: meta.title,
+        vendor: meta.vendor,
+        metaURI: meta.metaURI,
+        price: ethers.utils.formatEther(meta.price),
+        issuedAt: new Date(Number(meta.issuedAt) * 1000).toISOString(),
+        duration: Number(meta.duration),
+        revoked: meta.revoked,
+      };
+    })
+  );
+
+  return licenses;
+}

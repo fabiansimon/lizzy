@@ -20,6 +20,24 @@ const fetchAll = protectedProcedure
     }
   });
 
+const fetchUserLicenses = protectedProcedure
+  .output(z.array(License))
+  .query(async ({ ctx }) => {
+    try {
+      const licenses = await RegistryService.fetchUserLicenses(
+        ctx.req.session.siwe?.address!
+      );
+      return licenses;
+    } catch (error) {
+      console.error('❌ License fetch error:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch user licenses',
+      });
+    }
+  });
+
 export const licensesRouter = router({
   fetchAll,
+  fetchUserLicenses,
 });

@@ -5,6 +5,7 @@ import { SidebarProvider } from './components/ui/sidebar';
 import { Outlet } from 'react-router-dom';
 import Shop from './pages/ShopPage';
 import CreateLicense from './pages/CreateLicensePage';
+import UserLicenses from './pages/UserLicenses';
 
 function Layout() {
   return (
@@ -34,7 +35,7 @@ export default function App() {
           />
           <Route
             path="/user-licenses"
-            element={<Shop />}
+            element={<UserLicenses />}
           />
           <Route
             path="/vendor-licenses"

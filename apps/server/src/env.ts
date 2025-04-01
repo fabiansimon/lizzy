@@ -1,9 +1,12 @@
 import z from 'zod';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const envSchema = z.object({
   PORT: z.coerce.number().default(5001),
   IRON_SESSION_PASSWORD: z.string(),
   LIZZY_REGISTRY_CONTRACT_ADDRESS: z.string(),
+  LIZZY_REGISTRY_CONTRACT_RPC_URL: z.string(),
 });
 
 const envSafeParse = envSchema.safeParse(process.env);

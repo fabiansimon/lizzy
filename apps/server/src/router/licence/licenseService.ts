@@ -4,7 +4,7 @@ import { lizzyABI } from '../../../../contracts/lizzyRegistry/lizzyABI';
 import { CreateLicenseInput } from './licenseTypes';
 
 const provider = new ethers.providers.JsonRpcProvider(
-  'env.LIZZY_REGISTRY_CONTRACT_RPC_URL'
+  env.LIZZY_REGISTRY_CONTRACT_RPC_URL
 );
 const contract = new ethers.Contract(
   env.LIZZY_REGISTRY_CONTRACT_ADDRESS,

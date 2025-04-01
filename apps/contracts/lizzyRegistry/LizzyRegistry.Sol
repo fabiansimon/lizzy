@@ -131,6 +131,15 @@ contract LizzyRegistry {
 
         emit LicenseRevoked(user, licenseId);
     }
+
+    function getCatalog() external view returns (LicenseMeta[] memory) {
+        LicenseMeta[] memory licenses = new LicenseMeta[](licenseCounter);
+        for (uint256 i = 0; i < licenseCounter; i++) {
+            licenses[i] = catalog[i];
+        }
+        
+        return licenses;
+    }
 }
 
 /*

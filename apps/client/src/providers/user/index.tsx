@@ -20,12 +20,13 @@ type User = {
     nonce?: string;
   };
   address?: string;
+  role?: 'vendor' | 'customer';
   error?: Error | string;
 };
 
 type UserContextType = {
   user: User;
-  signIn: () => void;
+  signIn: (role: 'vendor' | 'customer') => void;
   signOut: () => void;
   fetch: () => void;
 };
@@ -37,7 +38,10 @@ export default function UserProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [state, setState] = useState<User>({});
+  const [state, setState] = useState<User>(() => {
+    const savedState = localStorage.getItem('userState');
+    return savedState ? JSON.parse(savedState) : {};
+  });
 
   const { address, isConnected } = useAccount();
   const { connectAsync, error: errorConnect } = useConnect({
@@ -58,7 +62,15 @@ export default function UserProvider({
   });
   const authVerify = trpc.auth.verify.useMutation();
 
-  const signIn = async () => {
+  useEffect(() => {
+    if (state.isSignedIn) {
+      localStorage.setItem('userState', JSON.stringify(state));
+    } else {
+      localStorage.removeItem('userState');
+    }
+  }, [state]);
+
+  const signIn = async (role: 'vendor' | 'customer') => {
     try {
       if (!isConnected) {
         await connectAsync();
@@ -71,6 +83,7 @@ export default function UserProvider({
         nonce: nonce?.data,
         isLoading: true,
         address,
+        role,
       }));
 
       // Create SIWE message with pre-fetched nonce and sign with wallet

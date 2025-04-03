@@ -12,6 +12,8 @@ import {
   Filter,
   ShoppingCart,
   Loader2,
+  Edit,
+  Trash,
 } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { useState } from 'react';
@@ -129,6 +131,52 @@ export default function ShopPage() {
     }
   };
 
+  const handleRevoke = async (licenseId: string) => {
+    // Add confirmation dialog
+    const confirmed = window.confirm(
+      'Are you sure you want to revoke this license? This action cannot be undone.'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setLoadingID(licenseId);
+
+      const provider = new ethers.providers.Web3Provider(
+        window.ethereum as any
+      );
+      const signer = provider.getSigner();
+
+      const contract = new ethers.Contract(
+        import.meta.env.VITE_LIZZY_REGISTRY_CONTRACT_ADDRESS,
+        lizzyABI,
+        signer
+      );
+
+      const tx = await contract.revokeLicense(
+        '0x99f327661D1d5a4Ec3d9E5364fbD5Fc416C4e8F7',
+        licenseId
+      );
+      await tx.wait();
+
+      toast({
+        title: 'Success',
+        description: 'License revoked successfully!',
+      });
+    } catch (error) {
+      console.error(error);
+      const errorMessage = parseContractError(error);
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingID(null);
+    }
+  };
   return (
     <div className="mx-auto py-8 px-4 flex-col w-full flex flex-grow min-h-screen max-w-full">
       <div className="mb-8">
@@ -215,7 +263,7 @@ export default function ShopPage() {
               license={license}
               key={license.id}
             >
-              {!license.revoked && (
+              {!license.revoked && user.role === 'customer' && (
                 <Button
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                   onClick={() =>
@@ -234,6 +282,15 @@ export default function ShopPage() {
                       Purchase License
                     </>
                   )}
+                </Button>
+              )}
+              {user.role === 'admin' && (
+                <Button
+                  className="w-full bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => handleRevoke(license.id.toString())}
+                >
+                  <Trash className="h-4 w-4 mr-2" />
+                  Revoke License
                 </Button>
               )}
               {license.revoked && (

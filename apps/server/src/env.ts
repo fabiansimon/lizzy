@@ -7,6 +7,7 @@ const envSchema = z.object({
   IRON_SESSION_PASSWORD: z.string(),
   LIZZY_REGISTRY_CONTRACT_ADDRESS: z.string(),
   RPC_URL: z.string(),
+  OWNER_WALLET_ADDRESS: z.string(),
 });
 
 const envSafeParse = envSchema.safeParse(process.env);

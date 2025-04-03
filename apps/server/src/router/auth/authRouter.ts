@@ -1,6 +1,7 @@
 import { generateNonce, SiweMessage } from 'siwe';
 import { z } from 'zod';
 import { router, publicProcedure } from '../../trpc';
+import { env } from '../../env';
 
 /**
  * Nonce
@@ -65,11 +66,15 @@ const verify = publicProcedure
 
       req.ctx.req.session.siwe = fields;
       await req.ctx.req.session.save();
-      return { ok: true };
+      return {
+        ok: true,
+        isAdmin: fields.address === env.OWNER_WALLET_ADDRESS,
+      };
     } catch (error: any) {
       return {
         ok: false,
         error: error?.message ?? 'Unknown error',
+        isAdmin: false,
       };
     }
   });

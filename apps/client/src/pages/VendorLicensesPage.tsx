@@ -149,7 +149,6 @@ export default function VendorLicensesPage() {
               <Button
                 className="bg-blue-600 hover:bg-blue-700 text-white w-full"
                 disabled={license.revoked}
-                onClick={() => navigate(`/manage-license/${license.id}`)}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Manage

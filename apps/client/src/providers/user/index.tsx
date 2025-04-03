@@ -10,7 +10,7 @@ import {
   useDisconnect,
 } from 'wagmi';
 import { trpc } from '../trpc';
-import { useNavigate } from 'react-router-dom';
+
 type User = {
   isLoading?: boolean;
   isSignedIn?: boolean;
@@ -20,7 +20,7 @@ type User = {
     nonce?: string;
   };
   address?: string;
-  role?: 'vendor' | 'customer';
+  role?: 'vendor' | 'customer' | 'admin';
   error?: Error | string;
 };
 
@@ -103,7 +103,14 @@ export default function UserProvider({
         message: message.prepareMessage(),
       });
 
-      await authVerify.mutateAsync({ message, signature });
+      const res = await authVerify.mutateAsync({
+        message,
+        signature,
+      });
+
+      if (res?.isAdmin) {
+        setState((x) => ({ ...x, role: 'admin' }));
+      }
     } catch (error) {
       console.log(error);
       setState((x) => ({

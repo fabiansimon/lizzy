@@ -22,6 +22,7 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { Badge } from '../ui/badge';
+import { useMemo } from 'react';
 
 type SidebarItem = {
   title: string;
@@ -34,6 +35,13 @@ export default function AppSidebar() {
   const { user, signIn, signOut } = useUser();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const role =
+    user.role === 'admin'
+      ? 'Owner'
+      : user.role === 'customer'
+      ? 'Customer'
+      : 'Vendor';
 
   const customerItems: SidebarItem[] = [
     {
@@ -63,9 +71,25 @@ export default function AppSidebar() {
     },
   ];
 
-  const menuItems = (
-    user.role === 'vendor' ? vendorItems : customerItems
-  ).filter((item) => !item.auth || user.isSignedIn);
+  const ownerItems: SidebarItem[] = [
+    {
+      title: 'All Licenses',
+      url: '/shop',
+      icon: Key,
+    },
+  ];
+
+  const menuItems = useMemo(() => {
+    if (!user.isSignedIn) return [];
+    switch (user.role) {
+      case 'customer':
+        return customerItems;
+      case 'vendor':
+        return vendorItems;
+      case 'admin':
+        return ownerItems;
+    }
+  }, [user.role, user.isSignedIn]);
 
   const isActive = (url: string) => {
     if (url === '/' && location.pathname === '/') return true;
@@ -91,7 +115,7 @@ export default function AppSidebar() {
               <div className="flex flex-col w-full px-2">
                 {user.isSignedIn && (
                   <Badge className="self-start mb-2 bg-sky-700 text-white">
-                    {user.role === 'vendor' ? 'Vendor' : 'Customer'}
+                    {role}
                   </Badge>
                 )}
                 <Button className="w-full bg-sky-500 hover:bg-sky-600 text-slate-950 px-4 overflow-hidden text-ellipsis whitespace-nowrap">

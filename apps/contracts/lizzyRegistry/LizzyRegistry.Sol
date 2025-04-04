@@ -28,7 +28,8 @@ contract LizzyRegistry {
 
     event LicenseUploaded(uint256 indexed id, address indexed vendor);
     event LicensePurchased(uint256 indexed id, address indexed buyer);
-    event LicenseRevoked(address indexed user, uint256 indexed licenseId);
+    event UserLicenseRevoked(address indexed user, uint256 indexed licenseId);
+    event LicenseRevoked(uint256 indexed licenseId);
 
     constructor() {
         owner = msg.sender;
@@ -123,13 +124,22 @@ contract LizzyRegistry {
         return userLicenses;
     }
 
-    function revokeLicense(address user, uint256 licenseId) external onlyOwner {
-        UserLicense storage license = licensesByUser[user][licenseId];
+    function revokeLicense(uint256 licenseId) external onlyOwner {
+        LicenseMeta storage license = catalog[licenseId];
         require(license.issuedAt != 0, "License not found.");
         require(!license.revoked, "Already revoked.");
         license.revoked = true;
 
         emit LicenseRevoked(user, licenseId);
+    }
+
+    function revokeUserLicense(address user, uint256 licenseId) external onlyOwner {
+        UserLicense storage license = licensesByUser[user][licenseId];
+        require(license.issuedAt != 0, "License not found.");
+        require(!license.revoked, "Already revoked.");
+        license.revoked = true;
+
+        emit UserLicenseRevoked(user, licenseId);
     }
 
     function getCatalog() external view returns (LicenseMeta[] memory) {

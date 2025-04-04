@@ -1,20 +1,11 @@
 import { trpc } from '../providers/trpc';
-import user, { useUser } from '../providers/user';
 import {
   Card,
   CardContent,
-  CardHeader,
   CardFooter,
+  CardHeader,
 } from '../components/ui/card';
-import {
-  AlertCircle,
-  Search,
-  Filter,
-  ShoppingCart,
-  Loader2,
-  Edit,
-  Trash,
-} from 'lucide-react';
+import { AlertCircle, Search, Filter } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { useState } from 'react';
 import {
@@ -25,24 +16,20 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import { Skeleton } from '../components/ui/skeleton';
-import { Navigate, useNavigate } from 'react-router-dom';
 import LicenseCard from '../components/ui/LicenseCard';
 import { Button } from '../components/ui/button';
-import { toast } from '../components/ui/use-toast';
-import { ethers } from 'ethers';
-import { lizzyABI } from '../../../contracts/lizzyRegistry/lizzyABI';
-import { parseContractError } from '../lib/utils';
-export default function ShopPage() {
+import { ExternalLink } from 'lucide-react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useUser } from '../providers/user';
+
+export default function VendorLicensesPage() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('newest');
-  const [loadingID, setLoadingID] = useState<string | null>(null);
 
+  const { user } = useUser();
   const navigate = useNavigate();
-  const { user, signIn } = useUser();
-  const { data, isLoading } = trpc.license.fetchAll.useQuery();
-  const {
-    user: { role },
-  } = useUser();
+
+  const { data, isLoading } = trpc.license.fetchVendorLicenses.useQuery();
 
   const licenses = data ?? [];
 
@@ -69,121 +56,17 @@ export default function ShopPage() {
     }
   });
 
-  const handlePurchase = async (licenseId: string, price: string) => {
-    if (!user.isSignedIn) {
-      signIn('customer');
-      return;
-    }
+  if (!user.isSignedIn || user.role !== 'vendor') {
+    return <Navigate to="/shop" />;
+  }
 
-    if (user.role !== 'customer') {
-      toast({
-        title: 'Error',
-        description: 'You must be signed in to purchase a license.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!window.ethereum) {
-      toast({
-        title: 'Wallet not found',
-        description: 'Please install MetaMask or another Web3 wallet.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      setLoadingID(licenseId);
-
-      const priceInWei = ethers.utils.parseEther(price); // assuming price is in ETH
-      const provider = new ethers.providers.Web3Provider(
-        window.ethereum as any
-      );
-      const signer = provider.getSigner();
-
-      const contract = new ethers.Contract(
-        import.meta.env.VITE_LIZZY_REGISTRY_CONTRACT_ADDRESS,
-        lizzyABI,
-        signer
-      );
-
-      const tx = await contract.buyLicense(licenseId, {
-        value: priceInWei, // send ETH with the transaction
-      });
-      await tx.wait();
-
-      toast({
-        title: 'Success',
-        description: 'License purchased successfully!',
-      });
-      navigate(`/user-licenses`);
-    } catch (error) {
-      console.error(error);
-      const errorMessage = parseContractError(error);
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-    } finally {
-      setLoadingID(null);
-    }
-  };
-
-  const handleRevoke = async (licenseId: string) => {
-    // Add confirmation dialog
-    const confirmed = window.confirm(
-      'Are you sure you want to revoke this license? This action cannot be undone.'
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setLoadingID(licenseId);
-
-      const provider = new ethers.providers.Web3Provider(
-        window.ethereum as any
-      );
-      const signer = provider.getSigner();
-
-      const contract = new ethers.Contract(
-        import.meta.env.VITE_LIZZY_REGISTRY_CONTRACT_ADDRESS,
-        lizzyABI,
-        signer
-      );
-
-      // const tx = await contract.revokeLicense(
-      //   '0x99f327661D1d5a4Ec3d9E5364fbD5Fc416C4e8F7',
-      //   licenseId
-      // );
-      // await tx.wait();
-
-      toast({
-        title: 'Success',
-        description: 'License revoked successfully!',
-      });
-    } catch (error) {
-      console.error(error);
-      const errorMessage = parseContractError(error);
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-    } finally {
-      setLoadingID(null);
-    }
-  };
   return (
     <div className="mx-auto py-8 px-4 flex-col w-full flex flex-grow min-h-screen max-w-full">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">
-          {'Available Licenses'}
+          {'Your Licenses'}
         </h1>
-        <p className="text-slate-400">{'Browse and purchase licenses'}</p>
+        <p className="text-slate-400">{'View your licenses'}</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 mb-8">
@@ -260,45 +143,16 @@ export default function ShopPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedLicenses.map((license) => (
             <LicenseCard
-              license={license}
               key={license.id}
+              license={license}
             >
-              {!license.revoked && user.role === 'customer' && (
-                <Button
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={() =>
-                    handlePurchase(license.id.toString(), license.price)
-                  }
-                  disabled={loadingID === license.id.toString()}
-                >
-                  {loadingID === license.id.toString() ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Purchasing...
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Purchase License
-                    </>
-                  )}
-                </Button>
-              )}
-              {user.role === 'admin' && (
-                <Button
-                  className="w-full bg-red-600 hover:bg-red-700 text-white"
-                  onClick={() => handleRevoke(license.id.toString())}
-                >
-                  <Trash className="h-4 w-4 mr-2" />
-                  Revoke License
-                </Button>
-              )}
-              {license.revoked && (
-                <Button className="w-full bg-red-700/15 hover:bg-red-700/15 cursor-not-allowed text-red-500">
-                  <AlertCircle className="h-4 w-4 mr-2" />
-                  Revoked
-                </Button>
-              )}
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white w-full"
+                disabled={license.revoked}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Manage
+              </Button>
             </LicenseCard>
           ))}
         </div>

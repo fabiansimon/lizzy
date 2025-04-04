@@ -1,5 +1,5 @@
 import { Button } from './button';
-import { ExternalLink, IdCard, ShoppingCart } from 'lucide-react';
+import { ExternalLink, ShoppingCart } from 'lucide-react';
 import { License } from '../../../../server/src/router/licence/licenseTypes';
 import {
   Card,
@@ -50,10 +50,6 @@ export default function LicenseCard({ license, children }: LicenseCardProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="flex items-center text-sm text-slate-300">
-            <IdCard className="h-4 w-4 mr-2 text-blue-400" />
-            <span className="font-semibold">{license.id}</span>
-          </div>
           <div className="flex items-center text-sm text-slate-300">
             <DollarSign className="h-4 w-4 mr-2 text-blue-400" />
             <span className="font-semibold">{license.price} ETH</span>

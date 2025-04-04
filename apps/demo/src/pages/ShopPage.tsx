@@ -155,11 +155,11 @@ export default function ShopPage() {
         signer
       );
 
-      // const tx = await contract.revokeLicense(
-      //   '0x99f327661D1d5a4Ec3d9E5364fbD5Fc416C4e8F7',
-      //   licenseId
-      // );
-      // await tx.wait();
+      const tx = await contract.revokeLicense(
+        '0x99f327661D1d5a4Ec3d9E5364fbD5Fc416C4e8F7',
+        licenseId
+      );
+      await tx.wait();
 
       toast({
         title: 'Success',

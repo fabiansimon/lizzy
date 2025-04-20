@@ -11,3 +11,7 @@ management, reduce piracy and fraud, and increase revenue through secure, transp
 licensing. The plan involves developing a B2B/B2C platform, along with an API valida-
 tor, to create a flexible and reliable licensing solution powered by blockchain technology.
 Additionally we will do a feasability analysis to the proposed solution.
+
+
+DEMO: 
+https://www.youtube.com/watch?v=4aNATgwK4DI
